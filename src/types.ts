@@ -17,21 +17,21 @@ export interface InvoiceData {
   issuerContactAddress: string;
   issuerInstagram1: string;
   issuerInstagram2: string;
-  
+
   clientName: string;
   clientNif: string;
   clientAddress: string;
   clientEmail: string;
-  
+
   invoiceNumber: string;
   invoiceSeries: string;
   invoiceDate: string;
-  
+
   items: InvoiceItem[];
-  
+
   ivaRate: number;
   irpfRate: number;
-  
+
   paymentMethod: string;
   notes: string;
 }
@@ -48,23 +48,23 @@ export const DEFAULT_INVOICE: InvoiceData = {
   issuerContactAddress: 'Ctra. de Barcelona, 42 (Ripoll)',
   issuerInstagram1: '@sicalipsis_fotografia',
   issuerInstagram2: '@sicalipsis_comunicaciovisual',
-  
+
   clientName: '',
   clientNif: '',
   clientAddress: '',
   clientEmail: '',
-  
+
   invoiceNumber: '001',
   invoiceSeries: new Date().getFullYear().toString(),
   invoiceDate: new Date().toISOString().split('T')[0],
-  
+
   items: [
-    { id: '1', description: 'Servicios profesionales', quantity: 1, unitPrice: 0 }
+    { id: '1', description: 'Serveis professionals', quantity: 1, unitPrice: 0 }
   ],
-  
+
   ivaRate: 21,
   irpfRate: 15,
-  
-  paymentMethod: 'Transferencia bancaria',
+
+  paymentMethod: 'Transferència bancària',
   notes: ''
 };
