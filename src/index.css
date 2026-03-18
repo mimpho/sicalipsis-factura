@@ -1,31 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Montserrat:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wdth,wght@75,100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
   --bg: #f9f9f7;
-  --ink: #1a1a1a;
+  --ink: #222222;
   --accent: #fce4ec;
-  --font-display: "Montserrat", sans-serif;
-  --font-sans: "Inter", sans-serif;
-  --font-body: "Inter", sans-serif;
+  --font-display: "Roboto", sans-serif;
+  --font-sans: "Roboto", sans-serif;
+  --font-body: "Roboto", sans-serif;
+  --font-invoice: "Roboto", sans-serif;
 
   /* Override default oklch colors with HEX for html2canvas compatibility */
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-800: #1e293b;
-  --color-rose-600: #e11d48;
+  --color-slate-300: #cccccc;
 }
 
 @layer base {
   body {
     @apply bg-[var(--bg)] text-[var(--ink)] font-body;
+    font-size: 12px;
+    font-weight: 200;
+    font-variation-settings: "wdth" 75;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-[400];
+  }
+
+  .f-input {
+    @apply w-full bg-white border-none rounded-[2px] px-4 py-2 outline-none transition-all focus:ring-1 focus:ring-slate-300/50;
+    font-size: 15px;
+  }
+
+  label {
+    @apply block;
   }
 }

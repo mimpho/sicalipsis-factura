@@ -1,163 +1,28 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
-  Plus,
-  Trash2,
-  Download,
-  FileText,
-  User,
-  Building2,
-  Calendar,
-  Hash,
-  Euro,
-  Info,
-  CheckCircle2,
-  Printer,
-  Mail,
-  Phone,
-  MapPin,
-  Camera,
-  PenTool,
-  MousePointer2,
-  Instagram,
-  ChevronDown,
-  ChevronUp
+  Plus, Trash2, Download, Printer, Camera, PenTool,
+  Mail, Phone, MapPin, Instagram, TvMinimal, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { motion, AnimatePresence } from 'motion/react';
-import { jsPDF } from 'jspdf';
+import { AnimatePresence, motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { InvoiceData, InvoiceItem, DEFAULT_INVOICE } from './types';
 
-const LOGO_URL = "/images/logo.jpeg";
-const FLORAL_HEADER_URL = "/images/floral_header.jpeg";
-const FLORAL_FOOTER_URL = "/images/floral_footer.jpeg";
-
-const Slider = ({ label, value, min, max, onChange, unit = "px" }: { label: string, value: number, min: number, max: number, onChange: (val: number) => void, unit?: string }) => (
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <label className="text-[8px] font-medium text-slate-400 uppercase">{label}</label>
-      <span className="text-[8px] font-mono text-slate-500">{value}{unit}</span>
-    </div>
-    <input
-      type="range" min={min} max={max} value={value}
-      onChange={(e) => onChange(parseInt(e.target.value))}
-      className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#1a1a1a]"
-    />
-  </div>
-);
-
-interface VisualImage {
-  id: string;
-  src: string;
-  width: number;
-  x: number;
-  y: number;
-  zIndex: number;
-}
-
-const TransformableImage = ({
-  image,
-  onChange,
-  isEditMode,
-  containerRef,
-  className = ""
-}: {
-  image: VisualImage,
-  onChange: (updates: Partial<VisualImage>) => void,
-  isEditMode: boolean,
-  containerRef: React.RefObject<HTMLDivElement | null>,
-  className?: string,
-  key?: React.Key
-}) => {
-  if (!image.src) return null;
-
-  return (
-    <motion.div
-      drag={isEditMode}
-      dragMomentum={false}
-      dragConstraints={containerRef}
-      dragElastic={0}
-      // Reset transform after drag ends and state updates left/top
-      animate={{ x: 0, y: 0 }}
-      transition={{ duration: 0 }}
-      onDragEnd={(_, info) => {
-        if (containerRef.current) {
-          // Get the scale from the parent container's style or calculate it
-          // Since we know the scale state in App, but we are in a child, 
-          // we can either pass it down or calculate it from the rect
-          const rect = containerRef.current.getBoundingClientRect();
-          const currentScale = rect.width / 800;
-
-          // Adjust offset by the scale factor
-          const newX = Math.round(image.x + (info.offset.x / currentScale));
-          const newY = Math.round(image.y + (info.offset.y / currentScale));
-
-          onChange({ x: newX, y: newY });
-        }
-      }}
-      style={{
-        position: 'absolute',
-        left: image.x,
-        top: image.y,
-        width: image.width,
-        zIndex: isEditMode ? 100 + image.zIndex : image.zIndex,
-        cursor: isEditMode ? 'move' : 'default',
-        touchAction: 'none'
-      }}
-      className={`${isEditMode ? 'outline outline-2 outline-blue-400 outline-dashed bg-blue-50/10 group' : ''} ${className}`}
-    >
-      <img
-        src={image.src}
-        alt=""
-        className="w-full h-auto block pointer-events-none"
-        style={{ opacity: 0.9 }}
-        referrerPolicy="no-referrer"
-        crossOrigin="anonymous"
-      />
-
-      {isEditMode && (
-        <>
-          {/* Resize Handle */}
-          <motion.div
-            drag
-            dragMomentum={false}
-            animate={{ x: 0, y: 0 }}
-            transition={{ duration: 0 }}
-            onDrag={(_, info) => {
-              const rect = containerRef.current?.getBoundingClientRect();
-              const currentScale = rect ? rect.width / 800 : 1;
-              const newWidth = Math.max(20, image.width + (info.delta.x / currentScale));
-              onChange({ width: newWidth });
-            }}
-            className="absolute -right-2 -bottom-2 w-6 h-6 bg-blue-500 rounded-full border-2 border-white cursor-nwse-resize shadow-lg flex items-center justify-center z-[110]"
-          >
-            <div className="w-1.5 h-1.5 bg-white rounded-full opacity-50" />
-          </motion.div>
-
-
-
-          {/* Info Label */}
-          <div className="absolute -top-7 left-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded shadow-sm uppercase font-bold whitespace-nowrap pointer-events-none z-[110]">
-            {image.width}px | {image.x},{image.y}
-          </div>
-        </>
-      )}
-    </motion.div>
-  );
+// Static asset paths
+const ASSETS = {
+  logo: '/images/logo.jpeg',
+  header: '/images/floral_header.jpeg',
+  footer: '/images/floral_footer.jpeg'
 };
+
 
 export default function App() {
   const [data, setData] = useState<InvoiceData>(DEFAULT_INVOICE);
-  const [images, setImages] = useState<VisualImage[]>([
-    { id: 'logo', src: LOGO_URL, width: 120, x: 550, y: 40, zIndex: 0 },
-    { id: 'header-floral', src: FLORAL_HEADER_URL, width: 250, x: 20, y: 20, zIndex: 0 },
-    { id: 'footer-floral', src: FLORAL_FOOTER_URL, width: 250, x: 450, y: 800, zIndex: 0 }
-  ]);
-
+  const [imageAssets, setImageAssets] = useState<Record<string, string>>({});
   const [showIssuer, setShowIssuer] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [containerScale, setContainerScale] = useState(1);
   const invoiceRef = useRef<HTMLDivElement>(null);
   const containerWrapperRef = useRef<HTMLDivElement>(null);
@@ -189,31 +54,25 @@ export default function App() {
     };
   }, []);
 
-  const updateImage = (id: string, updates: Partial<VisualImage>) => {
-    setImages(prev => prev.map(img => img.id === id ? { ...img, ...updates } : img));
-  };
-
-
-
-  // Convert static local images to Base64 to ensure they render in generated PDF
+  // Preload and convert static assets to Base64 (for html2canvas reliability)
   useEffect(() => {
-    const loadAsBase64 = async (id: string, url: string) => {
+    const loadAsBase64 = async (key: string, url: string) => {
       try {
         const response = await fetch(url);
         const blob = await response.blob();
         const reader = new FileReader();
         reader.onloadend = () => {
-          setImages(prev => prev.map(img => img.id === id ? { ...img, src: reader.result as string } : img));
+          setImageAssets(prev => ({ ...prev, [key]: reader.result as string }));
         };
         reader.readAsDataURL(blob);
       } catch (err) {
-        console.warn(`Failed to preload image: ${url}`, err);
+        console.warn(`Failed to preload asset: ${url}`, err);
       }
     };
 
-    loadAsBase64('logo', LOGO_URL);
-    loadAsBase64('header-floral', FLORAL_HEADER_URL);
-    loadAsBase64('footer-floral', FLORAL_FOOTER_URL);
+    loadAsBase64('logo', ASSETS.logo);
+    loadAsBase64('header', ASSETS.header);
+    loadAsBase64('footer', ASSETS.footer);
   }, []);
 
   // Calculations
@@ -297,25 +156,26 @@ export default function App() {
   const exportPDF = async () => {
     if (!invoiceRef.current) return;
 
-    const wasEditMode = isEditMode;
-    if (wasEditMode) setIsEditMode(false);
-
     try {
       // Wait for UI to update
       await new Promise(resolve => setTimeout(resolve, 150));
 
       // Ensure all images are loaded
       const imgElements = Array.from(invoiceRef.current.querySelectorAll('img')) as HTMLImageElement[];
-      await Promise.all(imgElements.map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-      }));
+      await Promise.all([
+        ...imgElements.map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+        }),
+        // Wait for fonts to be ready
+        (document as any).fonts?.ready || Promise.resolve()
+      ]);
 
       const canvas = await html2canvas(invoiceRef.current, {
-        scale: 2,
+        scale: 2, // Keep good resolution
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
@@ -337,24 +197,37 @@ export default function App() {
             el.style.position = 'relative';
             el.style.left = '0';
             el.style.top = '0';
+
+            // Ensure the main container has enough overflow space
+            el.style.paddingBottom = '100px';
+
+            // Targeted fix for footer icons alignment in PDF
+            const footerIcons = el.querySelectorAll('.flex-col.items-start svg');
+            footerIcons.forEach((svg: any) => {
+              svg.style.verticalAlign = 'middle';
+            });
           }
         }
       });
 
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      // Use JPEG with 0.85 quality to drastically reduce file size while keeping text sharp
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        compress: true // Enable jsPDF compression
+      });
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
       pdf.save(`Factura_${data.invoiceSeries}_${data.invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Hubo un error al generar el PDF. Por favor, inténtalo de nuevo.');
-    } finally {
-      if (wasEditMode) setIsEditMode(wasEditMode);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <div className="mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
 
         {/* Form Section */}
@@ -363,37 +236,25 @@ export default function App() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <img
-                  src={images.find(img => img.id === 'logo')?.src || LOGO_URL}
+                  src={imageAssets.logo || ASSETS.logo}
                   alt="Sicalipsis Logo"
                   className="h-20 w-auto"
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
                 />
                 <div className="h-10 w-px bg-[var(--ink)] opacity-10" />
-                <h1 className="text-2xl font-display font-bold tracking-tight">
-                  Factura Maker
+                <h1 className="text-[26px] font-[400] tracking-tight">
+                  Generador de factures
                 </h1>
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  className={`text-[10px] uppercase tracking-widest px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${isEditMode
-                    ? 'bg-blue-500 border-blue-500 text-white font-bold shadow-lg shadow-blue-200'
-                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'
-                    }`}
-                >
-                  <MousePointer2 size={12} />
-                  {isEditMode ? 'Guardar Diseño' : 'Editar Visualmente'}
-                </button>
-                <button
                   onClick={exportPDF}
-                  className="bg-[#1a1a1a] text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-black/10"
+                  className="bg-[#1a1a1a] text-white px-6 py-2.5 rounded-full font-[400] text-xs uppercase tracking-widest hover:bg-[#222222] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-black/10"
                 >
-                  <Download size={14} /> Exportar PDF
+                  <Download size={14} /> Generar PDF
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-[11px] font-sans font-light uppercase tracking-[0.15em] opacity-40">
+            <div className="flex items-center gap-4 text-[13px] uppercase tracking-[0.15em] opacity-40">
               <div className="flex items-center gap-1.5">
                 <Camera size={12} /> Fotografia
               </div>
@@ -407,32 +268,32 @@ export default function App() {
           <div className="space-y-8">
             {/* Client Data */}
             <section className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
-                <h2 className="font-display text-2xl font-light">Datos del Cliente</h2>
-                <span className="text-[10px] font-light uppercase tracking-widest text-slate-400">Receptor</span>
+              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+                <h2 className="text-[26px]">Dades del Client</h2>
+                <span className="uppercase tracking-widest">Receptor</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Nombre Cliente</label>
+                <div className="space-y-3">
+                  <label className="uppercase tracking-widest">Nom del Client</label>
                   <input
                     type="text" name="clientName" value={data.clientName} onChange={handleInputChange}
-                    placeholder="Nombre de la empresa o cliente"
-                    className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors text-lg font-display font-normal"
+                    placeholder="Nom de l'empresa o client"
+                    className="f-input"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">NIF / CIF Cliente</label>
+                <div className="space-y-3">
+                  <label className="uppercase tracking-widest">NIF / CIF del Client</label>
                   <input
                     type="text" name="clientNif" value={data.clientNif} onChange={handleInputChange}
                     placeholder="B12345678"
-                    className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                    className="f-input"
                   />
                 </div>
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Dirección Cliente</label>
+                <div className="md:col-span-2 space-y-3">
+                  <label className="uppercase tracking-widest">Adreça del Client</label>
                   <input
                     type="text" name="clientAddress" value={data.clientAddress} onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                    className="f-input"
                   />
                 </div>
               </div>
@@ -440,30 +301,30 @@ export default function App() {
 
             {/* Invoice Details */}
             <section className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
-                <h2 className="font-display text-2xl font-light">Detalles</h2>
-                <span className="text-[10px] font-light uppercase tracking-widest text-slate-400">Factura</span>
+              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+                <h2 className="text-[26px]">Detalls</h2>
+                <span className="uppercase tracking-widest">Factura</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Serie</label>
+                <div className="space-y-3">
+                  <label className="uppercase tracking-widest">Serie</label>
                   <input
                     type="text" name="invoiceSeries" value={data.invoiceSeries} onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                    className="f-input"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Número</label>
+                <div className="space-y-3">
+                  <label className="uppercase tracking-widest">Número</label>
                   <input
                     type="text" name="invoiceNumber" value={data.invoiceNumber} onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                    className="f-input"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Fecha</label>
+                <div className="space-y-3">
+                  <label className="uppercase tracking-widest">Fecha</label>
                   <input
                     type="date" name="invoiceDate" value={data.invoiceDate} onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                    className="f-input"
                   />
                 </div>
               </div>
@@ -471,16 +332,16 @@ export default function App() {
 
             {/* Items */}
             <section className="space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-2">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-display text-2xl font-light">Conceptos</h2>
-                  <span className="text-[10px] font-light uppercase tracking-widest text-slate-400">Servicios</span>
+                  <h2 className="text-[26px]">Conceptes</h2>
+                  <span className="uppercase tracking-widest">Serveis</span>
                 </div>
                 <button
                   onClick={addItem}
-                  className="text-[#1a1a1a] hover:underline text-[10px] font-light uppercase tracking-widest flex items-center gap-1 transition-all"
+                  className="text-[#1a1a1a] hover:underline  uppercase tracking-widest flex items-center gap-1 transition-all"
                 >
-                  <Plus size={12} /> Añadir Concepto
+                  <Plus size={12} /> Afegir Concepte
                 </button>
               </div>
               <div className="space-y-6">
@@ -493,35 +354,35 @@ export default function App() {
                       exit={{ opacity: 0, x: 10 }}
                       className="grid grid-cols-12 gap-6 items-end group"
                     >
-                      <div className="col-span-6 space-y-1.5">
-                        <label className="text-[9px] font-light text-slate-400 uppercase tracking-widest">Descripción</label>
+                      <div className="col-span-6 space-y-3">
+                        <label className="text-[11px] uppercase tracking-widest">Descripció</label>
                         <input
                           type="text" value={item.description}
                           onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                          placeholder="Ej: Sessió fotogràfica"
-                          className="w-full bg-transparent border-b border-slate-200 py-1.5 focus:border-[#1a1a1a] outline-none transition-colors text-sm font-display font-normal"
+                          placeholder="Ex: Sessió fotogràfica"
+                          className="f-input "
                         />
                       </div>
-                      <div className="col-span-2 space-y-1.5">
-                        <label className="text-[9px] font-light text-slate-400 uppercase tracking-widest text-center block">Cant.</label>
+                      <div className="col-span-2 space-y-3">
+                        <label className="text-[11px] uppercase tracking-widest text-center">Quant.</label>
                         <input
                           type="number" value={item.quantity}
                           onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                          className="w-full bg-transparent border-b border-slate-200 py-1.5 focus:border-[#1a1a1a] outline-none transition-colors text-center text-sm font-light"
+                          className="f-input text-center"
                         />
                       </div>
-                      <div className="col-span-3 space-y-1.5">
-                        <label className="text-[9px] font-light text-slate-400 uppercase tracking-widest text-right block">Precio</label>
+                      <div className="col-span-3 space-y-3">
+                        <label className="text-[11px] uppercase tracking-widest text-right">Preu</label>
                         <input
                           type="number" value={item.unitPrice}
                           onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)}
-                          className="w-full bg-transparent border-b border-slate-200 py-1.5 focus:border-[#1a1a1a] outline-none transition-colors text-right text-sm font-light"
+                          className="f-input text-right"
                         />
                       </div>
                       <div className="col-span-1 pb-1">
                         <button
                           onClick={() => removeItem(item.id)}
-                          className="p-1.5 text-slate-300 hover:text-[#1a1a1a] transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1.5 hover:text-[#1a1a1a] transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -534,51 +395,51 @@ export default function App() {
 
             {/* Taxes & Payment */}
             <section className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
-                <h2 className="font-display text-2xl font-light">Impuestos y Pago</h2>
-                <span className="text-[10px] font-light uppercase tracking-widest text-slate-400">Final</span>
+              <div className="flex items-center gap-3 border-b border-slate-300 pb-2">
+                <h2 className="text-[26px]">Impostos i Pagament</h2>
+                <span className="uppercase tracking-widest">Final</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">IVA (%)</label>
+                  <div className="space-y-3">
+                    <label className="uppercase tracking-widest">IVA (%)</label>
                     <select
                       name="ivaRate" value={data.ivaRate} onChange={handleInputChange}
-                      className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors appearance-none font-light"
+                      className="f-input appearance-none"
                     >
                       <option value={21}>21% (General)</option>
-                      <option value={10}>10% (Reducido)</option>
-                      <option value={4}>4% (Superreducido)</option>
-                      <option value={0}>0% (Exento)</option>
+                      <option value={10}>10% (Reduït)</option>
+                      <option value={4}>4% (Superreduït)</option>
+                      <option value={0}>0% (Exempt)</option>
                     </select>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">IRPF (%)</label>
+                  <div className="space-y-3">
+                    <label className="uppercase tracking-widest">IRPF (%)</label>
                     <select
                       name="irpfRate" value={data.irpfRate} onChange={handleInputChange}
-                      className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors appearance-none font-light"
+                      className="f-input appearance-none"
                     >
                       <option value={15}>15% (General)</option>
-                      <option value={7}>7% (Nuevos autónomos)</option>
+                      <option value={7}>7% (Nous autònoms)</option>
                       <option value={0}>0% (No aplica)</option>
                     </select>
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Método de Pago</label>
+                  <div className="space-y-3">
+                    <label className="uppercase tracking-widest">Mètode de Pagament</label>
                     <input
                       type="text" name="paymentMethod" value={data.paymentMethod} onChange={handleInputChange}
-                      placeholder="Ej: Transferencia ES12 3456..."
-                      className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                      placeholder="Ex: Transferència ES12 3456..."
+                      className="f-input"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Notas / Observaciones</label>
+                  <div className="space-y-3">
+                    <label className="uppercase tracking-widest">Notes / Observacions</label>
                     <textarea
                       name="notes" value={data.notes} onChange={handleInputChange}
                       rows={2}
-                      className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors resize-none font-light"
+                      className="f-input resize-none"
                     />
                   </div>
                 </div>
@@ -589,13 +450,13 @@ export default function App() {
             <section className="space-y-4">
               <button
                 onClick={() => setShowIssuer(!showIssuer)}
-                className="w-full flex items-center justify-between border-b border-slate-200 pb-2 hover:opacity-70 transition-opacity"
+                className="w-full flex items-center justify-between border-b border-slate-300 pb-2 hover:opacity-70 transition-opacity"
               >
                 <div className="flex items-center gap-3">
-                  <h2 className="font-display text-2xl font-light">Mis Datos</h2>
-                  <span className="text-[10px] font-light uppercase tracking-widest text-slate-400">Emisor</span>
+                  <h2 className="text-[26px]">Les meves dades</h2>
+                  <span className="uppercase tracking-widest">Emissor</span>
                 </div>
-                {showIssuer ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                {showIssuer ? <ChevronUp size={20} className="text-slate-300" /> : <ChevronDown size={20} className="text-slate-300" />}
               </button>
 
               <AnimatePresence>
@@ -607,81 +468,81 @@ export default function App() {
                     className="overflow-hidden"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 pb-6">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Nombre / Razón Social</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Nom / Raó Social</label>
                         <input
                           type="text" name="issuerName" value={data.issuerName} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors text-lg font-display font-normal"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">NIF / CIF</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">NIF / CIF</label>
                         <input
                           type="text" name="issuerNif" value={data.issuerNif} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="md:col-span-2 space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Dirección Fiscal</label>
+                      <div className="md:col-span-2 space-y-3">
+                        <label className="uppercase tracking-widest">Adreça Fiscal</label>
                         <input
                           type="text" name="issuerAddress" value={data.issuerAddress} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Web 1</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Web 1</label>
                         <input
                           type="text" name="issuerWeb1" value={data.issuerWeb1} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Web 2</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Web 2</label>
                         <input
                           type="text" name="issuerWeb2" value={data.issuerWeb2} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Email Contacto</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Email de Contacte</label>
                         <input
                           type="email" name="issuerContactEmail" value={data.issuerContactEmail} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Teléfono Contacto</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Telèfon de Contacte</label>
                         <input
                           type="text" name="issuerContactPhone" value={data.issuerContactPhone} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="md:col-span-2 space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Dirección Contacto</label>
+                      <div className="md:col-span-2 space-y-3">
+                        <label className="uppercase tracking-widest">Adreça de Contacte</label>
                         <input
                           type="text" name="issuerContactAddress" value={data.issuerContactAddress} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Instagram 1</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Instagram 1</label>
                         <input
                           type="text" name="issuerInstagram1" value={data.issuerInstagram1} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">Instagram 2</label>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Instagram 2</label>
                         <input
                           type="text" name="issuerInstagram2" value={data.issuerInstagram2} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
-                      <div className="md:col-span-2 space-y-1.5">
-                        <label className="text-[10px] font-light text-slate-400 uppercase tracking-widest">IBAN / Cuenta Bancaria</label>
+                      <div className="md:col-span-2 space-y-3">
+                        <label className="uppercase tracking-widest">IBAN / Compte Bancari</label>
                         <input
                           type="text" name="issuerIban" value={data.issuerIban} onChange={handleInputChange}
-                          className="w-full bg-transparent border-b border-slate-300 py-2 focus:border-[#1a1a1a] outline-none transition-colors font-light"
+                          className="f-input"
                         />
                       </div>
                     </div>
@@ -705,37 +566,55 @@ export default function App() {
             <div
               id="invoice-document"
               ref={invoiceRef}
-              className={`bg-white shadow-[0_45px_100px_-20px_rgba(0,0,0,0.15)] p-12 text-[#1a1a1a] flex flex-col relative shrink-0 ${isEditMode ? 'overflow-visible' : 'overflow-hidden'}`}
+              className={`bg-white shadow-[0_45px_100px_-20px_rgba(0,0,0,0.15)] py-42 px-24  flex flex-col relative shrink-0 overflow-hidden pb-20`}
               style={{
                 width: '800px',
                 height: '1131px',
                 minHeight: '1131px',
-                transform: `scale(${containerScale})`,
+                transform: `scale(${containerScale}) translateZ(0)`,
                 transformOrigin: 'center center',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                willChange: 'transform',
+                backfaceVisibility: 'hidden',
+                WebkitFontSmoothing: 'antialiased'
               }}
             >
-              {/* Transformable Images */}
-              {images.map((img) => (
-                <TransformableImage
-                  key={img.id}
-                  image={img}
-                  onChange={(updates) => updateImage(img.id, updates)}
-                  isEditMode={isEditMode}
-                  containerRef={invoiceRef}
+              {/* Static Decorations */}
+              {imageAssets.header && (
+                <img
+                  src={imageAssets.header}
+                  alt=""
+                  className="absolute"
+                  style={{ top: '0px', left: '10px', width: '250px' }}
                 />
-              ))}
+              )}
+              {imageAssets.logo && (
+                <img
+                  src={imageAssets.logo}
+                  alt=""
+                  className="absolute"
+                  style={{ top: '150px', right: '0px', width: '300px' }}
+                />
+              )}
+              {imageAssets.footer && (
+                <img
+                  src={imageAssets.footer}
+                  alt=""
+                  className="absolute opacity-90"
+                  style={{ bottom: '0px', right: '-60px', width: '350px' }}
+                />
+              )}
 
               {/* Header Section */}
-              <div className="flex justify-between items-start mt-12 mb-0 relative z-10 px-12">
-                <div className="space-y-0 pt-20 mt-16">
-                  <h2 className="text-[14px] font-display font-bold uppercase tracking-[0.15em] mb-4 text-[#1a1a1a]">FACTURA</h2>
-                  <div className="space-y-1 text-[11px] font-display mt-0 text-[#1a1a1a]">
-                    <p><span className="font-bold">Núm de factura:</span> <span className="font-light">{data.invoiceSeries}{data.invoiceNumber}</span></p>
-                    <p><span className="font-bold">Data:</span> <span className="font-light">{safeFormatDate(data.invoiceDate)}</span></p>
-                    <p><span className="font-bold">Client:</span> <span className="font-light">{data.clientName}</span></p>
-                    <p><span className="font-bold">NIF:</span> <span className="font-light">{data.clientNif}</span></p>
-                    <p><span className="font-bold">Direcció:</span> <span className="font-light text-[#475569]">{data.clientAddress}</span></p>
+              <div className="flex justify-between items-start relative z-10">
+                <div className="space-y-0">
+                  <h2 className="text-[18px] font-[400] uppercase tracking-[0.15em] mb-4">FACTURA</h2>
+                  <div className="space-y-1 text-[15px] mt-0">
+                    <p><span className="font-[400]">Núm de factura:</span> <span>{data.invoiceSeries}{data.invoiceNumber}</span></p>
+                    <p><span className="font-[400]">Data:</span> <span>{safeFormatDate(data.invoiceDate)}</span></p>
+                    <p><span className="font-[400]">Client:</span> <span>{data.clientName}</span></p>
+                    <p><span className="font-[400]">NIF:</span> <span>{data.clientNif}</span></p>
+                    <p><span className="font-[400]">Direcció:</span> <span className="">{data.clientAddress}</span></p>
                   </div>
                 </div>
                 <div className="text-right opacity-0 pointer-events-none">
@@ -744,15 +623,15 @@ export default function App() {
               </div>
 
               {/* Items Table */}
-              <div className="relative z-10 mt-16 px-12">
+              <div className="relative z-10 mt-16">
                 <div className="space-y-4">
                   {data.items.map((item) => (
                     <div key={item.id} className="flex justify-between items-start">
                       <div className="space-y-0.5">
-                        <p className="text-[12px] font-display font-bold text-[#1a1a1a]">{item.description || 'Sense descripció'}</p>
-                        <p className="text-[11px] font-display font-light italic text-[#64748b]">Reportatge i entrega de totes les fotos en alta resolució</p>
+                        <p className="text-[16px] font-[400]">{item.description || 'Sense descripció'}</p>
+                        <p className="text-[15px]">Reportatge i entrega de totes les fotos en alta resolució</p>
                       </div>
-                      <p className="text-[12px] font-display font-bold text-[#1a1a1a]">
+                      <p className="text-[16px] font-[400]">
                         {(item.quantity * item.unitPrice).toLocaleString('es-ES', { minimumFractionDigits: 1 })}€
                       </p>
                     </div>
@@ -761,54 +640,69 @@ export default function App() {
               </div>
 
               {/* Totals Section */}
-              <div className="relative z-10 pt-4 border-t border-[#e2e8f0] mt-12 mx-12">
-                <div className="flex justify-between text-[11px] font-display mb-1">
-                  <span className="font-bold text-[#1a1a1a]">Base</span>
-                  <span className="font-bold text-[#1a1a1a]">{totals.baseImponible.toLocaleString('es-ES', { minimumFractionDigits: 0 })}€</span>
+              <div className="relative z-10 pt-4 border-t border-slate-300 mt-4">
+                <div className="flex justify-between text-[15px] mb-1">
+                  <span className="font-[400]">Base</span>
+                  <span className="font-[400]">{totals.baseImponible.toLocaleString('es-ES', { minimumFractionDigits: 0 })}€</span>
                 </div>
-                <div className="flex flex-col items-end text-[10px] font-display font-light text-[#64748b] mb-6">
-                  <span>+{data.ivaRate}%IVA (+{totals.ivaAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€ sobre base)</span>
-                  {data.irpfRate > 0 && <span>-{data.irpfRate}%IRPF (-{totals.irpfAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€ sobre base)</span>}
+                <div className="flex flex-col items-end text-[14px]  mb-6">
+                  <span>+{data.ivaRate}%IVA (+{totals.ivaAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€ sobre la base)</span>
+                  {data.irpfRate > 0 && <span>-{data.irpfRate}%IRPF (-{totals.irpfAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€ sobre la base)</span>}
                 </div>
                 <div className="flex justify-between items-center py-4 border-t border-[#1a1a1a]">
-                  <span className="text-[13px] font-display font-bold uppercase tracking-[0.1em] text-[#1a1a1a]">TOTAL</span>
-                  <span className="text-[13px] font-display font-bold text-[#1a1a1a]">{totals.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€</span>
+                  <span className="text-[16px] font-[400] uppercase tracking-[0.1em]">TOTAL</span>
+                  <span className="text-[16px] font-[400]">{totals.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€</span>
                 </div>
               </div>
               {/* Footer Section (Pinned to bottom) */}
-              <div className="absolute bottom-12 left-12 right-12 z-10 px-6">
-                {/* Issuer Info Centered */}
-                <div className="text-center space-y-0.5 mb-14">
-                  <p className="text-[9.5px] font-display font-light italic text-[#333333]">
-                    {data.issuerName} · <span className="font-bold not-italic">NIF {data.issuerNif}</span> · {data.issuerAddress}
+              <div className="absolute bottom-18 left-24 right-24 z-10 flex flex-col items-start">
+                {/* Issuer Info Centered relative to full page width */}
+                <div className="w-full text-center space-y-0.5 mb-10">
+                  <p className="text-[11.5px] italic">
+                    {data.issuerName} · <span className="font-[400] not-italic">NIF {data.issuerNif}</span> · {data.issuerAddress}
                   </p>
-                  <p className="text-[9.5px] font-display font-light italic text-[#666666]">
-                    Es realitzarà un único pagament dins el període de 30 dies Núm. de compte: <span className="font-bold italic">BBVA: {data.issuerIban}</span>
+                  <p className="text-[11.5px] italic">
+                    Es realitzarà un únic pagament dins el període de 30 dies Núm. de compte: <span className="font-[400] italic">{data.issuerIban}</span>
                   </p>
                 </div>
 
-                {/* Contact Info (Icon list below left) */}
-                <div className="flex flex-col items-start space-y-0.5 ml-14">
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <MousePointer2 size={10} className="rotate-45 opacity-40" /> <span>{data.issuerWeb1}</span>
+                <div className="w-[60%] flex justify-between items-center">
+                  {/* Contact Info (Icon list below left) */}
+                  <div className="flex flex-col items-start space-y-1">
+                    <div className="flex gap-2.5">
+                      <TvMinimal size={10} />
+                      <span className="leading-none h-5">{data.issuerWeb1}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <TvMinimal size={10} />
+                      <span className="leading-none h-5">{data.issuerWeb2}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <Mail size={10} />
+                      <span className="leading-none h-5">{data.issuerContactEmail}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <Phone size={10} />
+                      <span className="leading-none h-5">{data.issuerContactPhone}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <MapPin size={10} />
+                      <span className="leading-none h-5">{data.issuerContactAddress}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <Instagram size={10} />
+                      <span className="leading-none h-5">{data.issuerInstagram1}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <Instagram size={10} />
+                      <span className="leading-none h-5">{data.issuerInstagram2}</span>
+                    </div>
                   </div>
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <MousePointer2 size={10} className="rotate-45 opacity-40" /> <span>{data.issuerWeb2}</span>
-                  </div>
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <Mail size={10} /> <span>{data.issuerContactEmail}</span>
-                  </div>
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <Phone size={10} /> <span>{data.issuerContactPhone}</span>
-                  </div>
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <MapPin size={10} /> <span>{data.issuerContactAddress}</span>
-                  </div>
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <Instagram size={10} /> <span>@{data.issuerInstagram1}</span>
-                  </div>
-                  <div className="text-[10px] font-display font-light text-[#444444] flex gap-3 items-center">
-                    <Instagram size={10} /> <span>@{data.issuerInstagram2}</span>
+
+                  {/* QR Code Section */}
+                  <div className="flex flex-col items-center gap-2">
+                    <QRCodeSVG value={qrUrl} size={80} level="M" />
+                    <span className="text-[8.5px] font-[400] uppercase tracking-wider opacity-40 text-center">Veri*factu</span>
                   </div>
                 </div>
               </div>
