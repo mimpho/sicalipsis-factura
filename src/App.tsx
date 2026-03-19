@@ -140,7 +140,7 @@ export default function App() {
   const addItem = () => {
     setData(prev => ({
       ...prev,
-      items: [...prev.items, { id: Math.random().toString(36).substr(2, 9), description: '', quantity: 1, unitPrice: 0 }]
+      items: [...prev.items, { id: Math.random().toString(36).substr(2, 9), concept: '', description: '', quantity: 1, unitPrice: 0 }]
     }));
   };
 
@@ -227,34 +227,34 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
-      <div className="mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="min-h-screen bg-[image:var(--bg-image)] text-[var(--ink)]">
+      <div className="mx-auto grid grid-cols-1 lg:grid-cols-2 max-w-[2000px]">
 
         {/* Form Section */}
         <div className="space-y-10 p-4 md:p-8 lg:p-12">
           <header className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center justify-between gap-y-4">
+              <div className="flex items-center gap-6 shrink-0">
                 <img
                   src={imageAssets.logo || ASSETS.logo}
                   alt="Sicalipsis Logo"
                   className="h-20 w-auto"
                 />
                 <div className="h-10 w-px bg-[var(--ink)] opacity-10" />
-                <h1 className="text-[26px] font-[400] tracking-tight">
+                <h1 className="text-[26px] font-[400] tracking-tight whitespace-nowrap">
                   Generador de factures
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={exportPDF}
-                  className="bg-[#1a1a1a] text-white px-6 py-2.5 rounded-full font-[400] text-xs uppercase tracking-widest hover:bg-[#222222] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-black/10"
+                  className="bg-[#1a1a1a] text-white px-6 py-2.5 rounded-full font-[400] text-xs uppercase tracking-widest hover:bg-[#222222] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-black/10 whitespace-nowrap"
                 >
                   <Download size={14} /> Generar PDF
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-[13px] uppercase tracking-[0.15em] opacity-40">
+            <div className="flex items-center gap-4 text-[13px] uppercase tracking-[0.15em] opacity-60">
               <div className="flex items-center gap-1.5">
                 <Camera size={12} /> Fotografia
               </div>
@@ -355,10 +355,10 @@ export default function App() {
                       className="grid grid-cols-12 gap-6 items-end group"
                     >
                       <div className="col-span-6 space-y-3">
-                        <label className="text-[11px] uppercase tracking-widest">Descripció</label>
+                        <label className="text-[11px] uppercase tracking-widest">Títol</label>
                         <input
-                          type="text" value={item.description}
-                          onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                          type="text" value={item.concept}
+                          onChange={(e) => handleItemChange(item.id, 'concept', e.target.value)}
                           placeholder="Ex: Sessió fotogràfica"
                           className="f-input "
                         />
@@ -386,6 +386,16 @@ export default function App() {
                         >
                           <Trash2 size={14} />
                         </button>
+                      </div>
+                      <div className="col-span-11 space-y-3">
+                        <label className="text-[11px] uppercase tracking-widest">Descripció</label>
+                        <textarea
+                          value={item.description}
+                          rows={2}
+                          onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                          placeholder="Ex: Sessió de 8 fotos a estudi. Inclou 10 arxius digitals editats i impressió de 10 fotografies en format 15x20cm."
+                          className="f-input "
+                        />
                       </div>
                     </motion.div>
                   ))}
@@ -628,8 +638,8 @@ export default function App() {
                   {data.items.map((item) => (
                     <div key={item.id} className="flex justify-between items-start">
                       <div className="space-y-0.5">
-                        <p className="text-[16px] font-[400]">{item.description || 'Sense descripció'}</p>
-                        <p className="text-[15px]">Reportatge i entrega de totes les fotos en alta resolució</p>
+                        <p className="text-[16px] font-[400]">{item.concept || 'Afegir concepte'}</p>
+                        {item.description && <p className="text-[15px]">{item.description}</p>}
                       </div>
                       <p className="text-[16px] font-[400]">
                         {(item.quantity * item.unitPrice).toLocaleString('es-ES', { minimumFractionDigits: 1 })}€

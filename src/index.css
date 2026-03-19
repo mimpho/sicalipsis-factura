@@ -3,6 +3,7 @@
 
 @theme {
   --bg: #f9f9f7;
+  --bg-image: linear-gradient(135deg, #efe6ea, #e6dfeb, #e5f1f1);
   --ink: #222222;
   --accent: #fce4ec;
   --font-display: "Roboto", sans-serif;
@@ -11,7 +12,7 @@
   --font-invoice: "Roboto", sans-serif;
 
   /* Override default oklch colors with HEX for html2canvas compatibility */
-  --color-slate-300: #cccccc;
+  --color-slate-300: #00000033;
 }
 
 @layer base {
@@ -32,8 +33,13 @@
   }
 
   .f-input {
-    @apply w-full bg-white border-none rounded-[2px] px-4 py-2 outline-none transition-all focus:ring-1 focus:ring-slate-300/50;
+    @apply w-full bg-white border-none rounded-[5px] px-4 py-2 outline-none transition-all focus:ring-1 focus:ring-slate-300/50;
     font-size: 15px;
+    box-shadow: 0px 0px 3px #2222221f;
+
+    &:focus {
+      box-shadow: 0 0 3px #0000003d;
+    }
   }
 
   label {

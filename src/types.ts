@@ -1,5 +1,6 @@
 export interface InvoiceItem {
   id: string;
+  concept: string;
   description: string;
   quantity: number;
   unitPrice: number;
@@ -59,7 +60,7 @@ export const DEFAULT_INVOICE: InvoiceData = {
   invoiceDate: new Date().toISOString().split('T')[0],
 
   items: [
-    { id: '1', description: 'Serveis professionals', quantity: 1, unitPrice: 0 }
+    { id: '1', concept: '', description: '', quantity: 1, unitPrice: 0 }
   ],
 
   ivaRate: 21,
