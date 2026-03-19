@@ -240,8 +240,7 @@ export default function App() {
                   alt="Sicalipsis Logo"
                   className="h-20 w-auto"
                 />
-                <div className="h-10 w-px bg-[var(--ink)] opacity-10" />
-                <h1 className="text-[26px] font-[400] tracking-tight whitespace-nowrap">
+                <h1 className="uppercase tracking-wider font-extralight opacity-75 text-[26px] font-[400] tracking-tight whitespace-nowrap">
                   Generador de factures
                 </h1>
               </div>
