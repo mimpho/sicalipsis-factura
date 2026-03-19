@@ -247,7 +247,7 @@ export default function App() {
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={exportPDF}
-                  className="fixed z-10 bottom-4 left-1/2 -translate-x-1/2 md:static md:translate-x-0 bg-[#1a1a1a] text-white px-6 py-2.5 rounded-full font-[400] text-xs uppercase tracking-widest hover:bg-[#222222] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-black/10 whitespace-nowrap"
+                  className="fixed z-10 bottom-8 left-1/2 -translate-x-1/2 md:static md:translate-x-0 bg-[#1a1a1a] text-white px-6 py-3 rounded-full font-[400] text-sm uppercase tracking-widest hover:bg-[#222222] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-black/10 whitespace-nowrap"
                 >
                   <Download size={14} /> Generar PDF
                 </button>
