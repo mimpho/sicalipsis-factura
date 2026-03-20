@@ -174,6 +174,30 @@ export default function App() {
         (document as any).fonts?.ready || Promise.resolve()
       ]);
 
+      // Capture link metadata before generating PDF
+      const links: { x: number, y: number, w: number, h: number, url: string }[] = [];
+      if (invoiceRef.current) {
+        const containerRect = invoiceRef.current.getBoundingClientRect();
+        const anchorElements = invoiceRef.current.querySelectorAll('a');
+        
+        anchorElements.forEach(a => {
+          const rect = a.getBoundingClientRect();
+          const href = a.getAttribute('href');
+          if (href) {
+            // Convert pixels relative to container (accounting for scaling) to mm
+            // 800px fits in 210mm wide A4 -> 1px = 210/800 mm
+            const scaleFactor = 210 / 800;
+            links.push({
+              x: (rect.left - containerRect.left) / containerScale * scaleFactor,
+              y: (rect.top - containerRect.top) / containerScale * scaleFactor,
+              w: rect.width / containerScale * scaleFactor,
+              h: rect.height / containerScale * scaleFactor,
+              url: href
+            });
+          }
+        });
+      }
+
       const canvas = await html2canvas(invoiceRef.current, {
         scale: 2, // Keep good resolution
         useCORS: true,
@@ -202,9 +226,24 @@ export default function App() {
             el.style.paddingBottom = '100px';
 
             // Targeted fix for footer icons alignment in PDF
-            const footerIcons = el.querySelectorAll('.flex-col.items-start svg');
-            footerIcons.forEach((svg: any) => {
-              svg.style.verticalAlign = 'middle';
+            const contactRows = el.querySelectorAll('.contact-row');
+            contactRows.forEach((row: any) => {
+              row.style.display = 'flex';
+              row.style.alignItems = 'center';
+              row.style.gap = '10px';
+              row.style.minHeight = '18px'; // Reduced back for compactness
+              row.style.overflow = 'visible';
+              
+              const iconDiv = row.querySelector('div');
+              if (iconDiv) {
+                // Keep the stronger manual offset for the PDF
+                iconDiv.style.transform = 'translateY(2.5px)';
+              }
+              const svg = row.querySelector('svg');
+              if (svg) {
+                svg.style.overflow = 'visible';
+                svg.style.display = 'block';
+              }
             });
           }
         }
@@ -219,6 +258,12 @@ export default function App() {
         compress: true // Enable jsPDF compression
       });
       pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      
+      // Manually add the links as invisible interactive layers over the image
+      links.forEach(link => {
+        pdf.link(link.x, link.y, link.w, link.h, { url: link.url });
+      });
+
       pdf.save(`Factura_${data.invoiceSeries}_${data.invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -667,33 +712,73 @@ export default function App() {
                 <div className="w-[60%] flex justify-between items-center">
                   {/* Contact Info (Icon list below left) */}
                   <div className="flex flex-col items-start space-y-1">
-                    <div className="flex gap-2.5 h-5">
-                      <TvMinimal size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerWeb1}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <TvMinimal size={13} className="overflow-visible" />
+                      </div>
+                      <a href={data.issuerWeb1?.startsWith('http') ? data.issuerWeb1 : `https://${data.issuerWeb1}`} target="_blank" rel="noopener noreferrer" className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity">
+                        {data.issuerWeb1}
+                      </a>
                     </div>
-                    <div className="flex gap-2.5 h-5">
-                      <TvMinimal size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerWeb2}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <TvMinimal size={13} className="overflow-visible" />
+                      </div>
+                      <a href={data.issuerWeb2?.startsWith('http') ? data.issuerWeb2 : `https://${data.issuerWeb2}`} target="_blank" rel="noopener noreferrer" className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity">
+                        {data.issuerWeb2}
+                      </a>
                     </div>
-                    <div className="flex gap-2.5 h-5">
-                      <Mail size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerContactEmail}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <Mail size={13} className="overflow-visible" />
+                      </div>
+                      <a href={`mailto:${data.issuerContactEmail}`} className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity">
+                        {data.issuerContactEmail}
+                      </a>
                     </div>
-                    <div className="flex gap-2.5 h-5">
-                      <Phone size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerContactPhone}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <Phone size={13} className="overflow-visible" />
+                      </div>
+                      <a href={`tel:${data.issuerContactPhone?.replace(/\s/g, '')}`} className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity">
+                        {data.issuerContactPhone}
+                      </a>
                     </div>
-                    <div className="flex gap-2.5 h-5">
-                      <MapPin size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerContactAddress}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <MapPin size={13} className="overflow-visible" />
+                      </div>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.issuerContactAddress)}`} 
+                        target="_blank" rel="noopener noreferrer" 
+                        className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity"
+                      >
+                        {data.issuerContactAddress}
+                      </a>
                     </div>
-                    <div className="flex gap-2.5 h-5">
-                      <Instagram size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerInstagram1}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <Instagram size={13} className="overflow-visible" />
+                      </div>
+                      <a 
+                        href={`https://www.instagram.com/${data.issuerInstagram1?.replace('@', '')}`} 
+                        target="_blank" rel="noopener noreferrer" 
+                        className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity"
+                      >
+                        {data.issuerInstagram1}
+                      </a>
                     </div>
-                    <div className="flex gap-2.5 h-5">
-                      <Instagram size={12} className="h-6" />
-                      <span className="leading-none">{data.issuerInstagram2}</span>
+                    <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
+                      <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
+                        <Instagram size={13} className="overflow-visible" />
+                      </div>
+                      <a 
+                        href={`https://www.instagram.com/${data.issuerInstagram2?.replace('@', '')}`} 
+                        target="_blank" rel="noopener noreferrer" 
+                        className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity"
+                      >
+                        {data.issuerInstagram2}
+                      </a>
                     </div>
                   </div>
 
