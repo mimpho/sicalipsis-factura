@@ -309,7 +309,7 @@ export default function App() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label className="uppercase tracking-widest">Fecha</label>
+                  <label className="uppercase tracking-widest">Data</label>
                   <input
                     type="date" name="invoiceDate" value={data.invoiceDate} onChange={handleInputChange}
                     className="f-input"
@@ -667,33 +667,33 @@ export default function App() {
                 <div className="w-[60%] flex justify-between items-center">
                   {/* Contact Info (Icon list below left) */}
                   <div className="flex flex-col items-start space-y-1">
-                    <div className="flex gap-2.5">
-                      <TvMinimal size={10} />
-                      <span className="leading-none h-5">{data.issuerWeb1}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <TvMinimal size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerWeb1}</span>
                     </div>
-                    <div className="flex gap-2.5">
-                      <TvMinimal size={10} />
-                      <span className="leading-none h-5">{data.issuerWeb2}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <TvMinimal size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerWeb2}</span>
                     </div>
-                    <div className="flex gap-2.5">
-                      <Mail size={10} />
-                      <span className="leading-none h-5">{data.issuerContactEmail}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <Mail size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerContactEmail}</span>
                     </div>
-                    <div className="flex gap-2.5">
-                      <Phone size={10} />
-                      <span className="leading-none h-5">{data.issuerContactPhone}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <Phone size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerContactPhone}</span>
                     </div>
-                    <div className="flex gap-2.5">
-                      <MapPin size={10} />
-                      <span className="leading-none h-5">{data.issuerContactAddress}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <MapPin size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerContactAddress}</span>
                     </div>
-                    <div className="flex gap-2.5">
-                      <Instagram size={10} />
-                      <span className="leading-none h-5">{data.issuerInstagram1}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <Instagram size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerInstagram1}</span>
                     </div>
-                    <div className="flex gap-2.5">
-                      <Instagram size={10} />
-                      <span className="leading-none h-5">{data.issuerInstagram2}</span>
+                    <div className="flex gap-2.5 h-5">
+                      <Instagram size={12} className="h-6" />
+                      <span className="leading-none">{data.issuerInstagram2}</span>
                     </div>
                   </div>
 
