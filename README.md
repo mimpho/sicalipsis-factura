@@ -1,7 +1,6 @@
-<img width="1728" height="998" alt="image" src="https://github.com/user-attachments/assets/16b7b124-7dc5-46ec-a17b-2c088ac67d12" />
+<img width="1728" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec6d831e-9644-4907-970f-63f6f51f4b54" />
 
-
-# Sicalipsis Factura 📄✨
+# Sicalipsis :: Generador de facturas 📄✨
 
 **Sicalipsis Factura** es un generador de facturas minimalista, rápido y elegante diseñado específicamente para profesionales que valoran la simplicidad y el diseño impecable.
 
