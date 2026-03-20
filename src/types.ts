@@ -14,7 +14,8 @@ export interface InvoiceData {
   issuerWeb1: string;
   issuerWeb2: string;
   issuerContactEmail: string;
-  issuerContactPhone: string;
+  issuerContactPhone1: string;
+  issuerContactPhone2: string;
   issuerContactAddress: string;
   issuerInstagram1: string;
   issuerInstagram2: string;
@@ -45,7 +46,8 @@ export const DEFAULT_INVOICE: InvoiceData = {
   issuerWeb1: 'www.ilovesicalipsis.com',
   issuerWeb2: 'www.sicalipsis.com',
   issuerContactEmail: 'grafica@sicalipsis.com',
-  issuerContactPhone: '647 956 198 · 972 71 43 41',
+  issuerContactPhone1: '647 956 198',
+  issuerContactPhone2: '972 714 341',
   issuerContactAddress: 'Ctra. de Barcelona, 42 (Ripoll)',
   issuerInstagram1: '@sicalipsis_fotografia',
   issuerInstagram2: '@sicalipsis_comunicaciovisual',

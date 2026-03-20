@@ -179,7 +179,7 @@ export default function App() {
       if (invoiceRef.current) {
         const containerRect = invoiceRef.current.getBoundingClientRect();
         const anchorElements = invoiceRef.current.querySelectorAll('a');
-        
+
         anchorElements.forEach(a => {
           const rect = a.getBoundingClientRect();
           const href = a.getAttribute('href');
@@ -233,7 +233,7 @@ export default function App() {
               row.style.gap = '10px';
               row.style.minHeight = '18px'; // Reduced back for compactness
               row.style.overflow = 'visible';
-              
+
               const iconDiv = row.querySelector('div');
               if (iconDiv) {
                 // Keep the stronger manual offset for the PDF
@@ -258,7 +258,7 @@ export default function App() {
         compress: true // Enable jsPDF compression
       });
       pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
-      
+
       // Manually add the links as invisible interactive layers over the image
       links.forEach(link => {
         pdf.link(link.x, link.y, link.w, link.h, { url: link.url });
@@ -554,9 +554,16 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="uppercase tracking-widest">Telèfon de Contacte</label>
+                        <label className="uppercase tracking-widest">Telèfon 1</label>
                         <input
-                          type="text" name="issuerContactPhone" value={data.issuerContactPhone} onChange={handleInputChange}
+                          type="text" name="issuerContactPhone1" value={data.issuerContactPhone1} onChange={handleInputChange}
+                          className="f-input"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="uppercase tracking-widest">Telèfon 2</label>
+                        <input
+                          type="text" name="issuerContactPhone2" value={data.issuerContactPhone2} onChange={handleInputChange}
                           className="f-input"
                         />
                       </div>
@@ -740,17 +747,27 @@ export default function App() {
                       <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
                         <Phone size={13} className="overflow-visible" />
                       </div>
-                      <a href={`tel:${data.issuerContactPhone?.replace(/\s/g, '')}`} className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity">
-                        {data.issuerContactPhone}
-                      </a>
+                      <div className="leading-tight text-[12.5px]">
+                        {data.issuerContactPhone1 && (
+                          <a href={`tel:${data.issuerContactPhone1.replace(/\s/g, '').replace(/\./g, '')}`} className="hover:opacity-75 transition-opacity">
+                            {data.issuerContactPhone1}
+                          </a>
+                        )}
+                        {data.issuerContactPhone1 && data.issuerContactPhone2 && <span className="mx-0.5">·</span>}
+                        {data.issuerContactPhone2 && (
+                          <a href={`tel:${data.issuerContactPhone2.replace(/\s/g, '').replace(/\./g, '')}`} className="hover:opacity-75 transition-opacity">
+                            {data.issuerContactPhone2}
+                          </a>
+                        )}
+                      </div>
                     </div>
                     <div className="contact-row flex items-center gap-2.5 min-h-[18px] overflow-visible">
                       <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
                         <MapPin size={13} className="overflow-visible" />
                       </div>
-                      <a 
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.issuerContactAddress)}`} 
-                        target="_blank" rel="noopener noreferrer" 
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.issuerContactAddress)}`}
+                        target="_blank" rel="noopener noreferrer"
                         className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity"
                       >
                         {data.issuerContactAddress}
@@ -760,9 +777,9 @@ export default function App() {
                       <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
                         <Instagram size={13} className="overflow-visible" />
                       </div>
-                      <a 
-                        href={`https://www.instagram.com/${data.issuerInstagram1?.replace('@', '')}`} 
-                        target="_blank" rel="noopener noreferrer" 
+                      <a
+                        href={`https://www.instagram.com/${data.issuerInstagram1?.replace('@', '')}`}
+                        target="_blank" rel="noopener noreferrer"
                         className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity"
                       >
                         {data.issuerInstagram1}
@@ -772,9 +789,9 @@ export default function App() {
                       <div className="flex items-center justify-center w-5 shrink-0 translate-y-[2.5px]">
                         <Instagram size={13} className="overflow-visible" />
                       </div>
-                      <a 
-                        href={`https://www.instagram.com/${data.issuerInstagram2?.replace('@', '')}`} 
-                        target="_blank" rel="noopener noreferrer" 
+                      <a
+                        href={`https://www.instagram.com/${data.issuerInstagram2?.replace('@', '')}`}
+                        target="_blank" rel="noopener noreferrer"
                         className="leading-tight text-[12.5px] hover:opacity-75 transition-opacity"
                       >
                         {data.issuerInstagram2}
